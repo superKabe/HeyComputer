@@ -34,3 +34,19 @@ The next milestone is a constrained live desktop session, not another applicatio
 
 The current Spotify, YouTube, process-check, and media-key controls remain as smoke tests and future fast paths. They should not expand into the primary architecture. Their typed results, cancellation, allowlisting, and tests can be reused inside the broader control host.
 
+## Alternatives considered
+
+Three broad implementation strategies are viable. A native Windows approach built around UI Automation, FlaUI, Windows Graphics Capture, and `SendInput` would fit the existing .NET application and give maximum control, but would require us to build and maintain most of the difficult perception, input, recovery, and browser machinery. A pure screenshot-and-coordinate loop, like the basic OpenAI or Anthropic computer-use contract, has universal visual reach but is slower, more expensive, and more fragile on long tasks. A browser-first implementation using Playwright or CDP is efficient and reliable for websites but cannot control the rest of Windows. The recommended hybrid routes each step through the strongest available interface and preserves visual control as the fallback.
+
+## Current state of the art
+
+The strongest contemporary systems are converging on hybrid, adaptive interfaces. Microsoft UFO² combines application-specific agents, screenshots, UI Automation, native APIs, and isolated desktops. [Agent S](https://github.com/simular-ai/Agent-S) demonstrates general screenshot-driven control across desktop environments, while [Agent S4](https://arxiv.org/abs/2610.28601) goes further by having a meta-agent evolve small tool interfaces from task experience; its authors report 21.3% on strict OSWorld V2 with an open model, 3.8 times the same model with fixed interfaces. This supports Hey Computer’s design principle that structured tools should emerge as optimizations over a general control loop rather than replacing it.
+
+Published computer-use scores are not directly comparable across OSWorld, OSWorld Verified, OSWorld V2, Windows Agent Arena, different step budgets, and best-of-N harnesses. Hey Computer should build a small repeatable Windows suite derived from [Windows Agent Arena](https://github.com/microsoft/WindowsAgentArena) and report completion, action count, latency, provider cost, focus theft, stale-state recovery, and user interventions.
+
+## Comparison with OpenClaw
+
+[OpenClaw](https://github.com/openclaw/openclaw) is the closest broad product analogue: a mature, cross-platform agent gateway with chat channels, plugins, remote nodes, tool policy, device pairing, and persistent workspaces. On Windows and Linux its optional, experimental CUA plugin embeds a pinned Cua Driver SDK in-process, exposes a normalized computer tool, verifies native artifacts, binds actions to the current session and frame generation, and closes execution on cancellation or disconnect. OpenClaw treats the gateway as the authorization boundary and CUA as a replaceable effector.
+
+Hey Computer is currently far behind OpenClaw in general execution, permissions, pairing, plugins, browser operations, remote nodes, and lifecycle hardening. Its differentiated target is narrower: a Windows-native, voice-first companion with a stable conversational personality, a transparent local memory vault, an always-visible Conversation → Orchestration + Context → Worker hierarchy, and explicit usage-budget governance. We should borrow OpenClaw’s provider boundary, pinned runtime, execution-scoped references, opt-in control, and lifecycle cleanup without copying its broader channel-and-gateway product.
+

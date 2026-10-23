@@ -14,6 +14,10 @@ This three-role design remains the long-term architecture, but completing every 
 
 Local-first does not require local model inference. Canonical memory, task state, permissions, credentials, audit history, and configuration live on the user’s Windows computer in inspectable formats. Cloud models may process requests when selected, but the product must disclose what leaves the device. Future optional local models may perform light routing, summarization, retrieval, or classification on hardware that can support them.
 
+## User-owned intelligence layer
+
+Hey Computer—not any model vendor—owns the durable assistant. Identity, personality, memory, current tasks, permissions, computer-control capabilities, audit history, and provider-independent context remain consistent when a user changes models. OpenAI, xAI, Anthropic, local models, and future providers plug into explicit model and tool contracts as replaceable reasoning engines. Changing the engine must not force the user into that vendor’s application, erase continuity, or remove access to the local computer capabilities the user has already configured.
+
 ## Transparent continuity
 
 Continuity comes from explicit memory rather than one enormous hidden conversation. Human-readable Markdown and structured metadata hold durable facts, decisions, projects, tasks, and dated summaries. A derived SQLite index supports fast retrieval and can be rebuilt. Every durable memory should have a source, timestamp, confidence, and user-visible correction or deletion path.

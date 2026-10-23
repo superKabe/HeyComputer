@@ -71,6 +71,8 @@ Model the core loop explicitly as `Sleeping`, `WakeDetected`, `Listening`, `Tran
 
 Keep the voice pipeline composable: local wake word, speech-to-text, text agent, and text-to-speech. Define small asynchronous interfaces for transcription, agent, and speech providers, with capability metadata for streaming, local versus cloud execution, supported formats, voices, cancellation, and optional tools. Provider-specific response objects must not escape into the application core. A provider manifest should hold its display name, endpoint, selected model, nonsecret settings, and a reference to its protected credential.
 
+Hey Computer owns the durable agent substrate: personality, local memory, retrieved context, active tasks, permissions, usage policy, computer-control contracts, and audit history. Treat every cloud or local model as a replaceable reasoning provider. Switching providers must preserve continuity and expose the same provider-independent desktop observations, actions, results, and user-granted capabilities whenever that model can consume the common tool contract. Never make a provider-owned conversation, tool schema, or application the canonical copy of user context or capability state.
+
 ## Grok preset
 
 Offer a humorous, human-feeling Grok preset as the initial polished experience, but do not make the application depend on Grok. The preset can use xAI's current Responses and voice capabilities while the generic adapters support other services. Treat legacy OpenAI-compatible chat endpoints as compatibility paths rather than the central architecture. Verify current xAI documentation, model names, pricing, and licensing again when implementation begins because provider surfaces change.
