@@ -1,0 +1,16 @@
+{
+  "modelId": "replace-with-verified-model-id",
+  "version": "replace-with-model-version",
+  "sourceUrl": "https://example.invalid/replace-with-official-model-source",
+  "licenseSpdx": "Apache-2.0",
+  "licenseUrl": "https://example.invalid/replace-with-license-source",
+  "redistributionAllowed": false,
+  "wakePhrase": "Hey Computer",
+  "keywordTokens": "replace-with-model-specific-tokenization",
+  "sha256": {
+    "encoder.onnx": "replace-with-64-character-sha256",
+    "decoder.onnx": "replace-with-64-character-sha256",
+    "joiner.onnx": "replace-with-64-character-sha256",
+    "tokens.txt": "replace-with-64-character-sha256"
+  }
+}

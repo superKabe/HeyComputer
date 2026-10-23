@@ -1,0 +1,57 @@
+<UserControl x:Class="HeyComputer.Onboarding.Views.OnboardingWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             MinWidth="560" MinHeight="480">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Set up Hey Computer" FontSize="28" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding CurrentStep}" Margin="0,6,0,0" Foreground="Gray" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" Margin="0,24,0,20" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Microphone privacy" FontWeight="SemiBold" />
+                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"
+                           Text="Wake detection runs locally. Only an activated request is sent to a configured provider. Calibration audio is not retained." />
+                <CheckBox Margin="0,10,0,18" Content="I understand and allow microphone access"
+                          IsChecked="{Binding PrivacyConsentAccepted}" />
+
+                <TextBlock Text="Devices" FontWeight="SemiBold" />
+                <TextBox Margin="0,6,0,8" Text="{Binding MicrophoneId, UpdateSourceTrigger=PropertyChanged}" ToolTip="Microphone device identifier" />
+                <TextBox Margin="0,0,0,18" Text="{Binding SpeakerId, UpdateSourceTrigger=PropertyChanged}" ToolTip="Optional speaker device identifier" />
+
+                <TextBlock Text="AI provider" FontWeight="SemiBold" />
+                <TextBox Margin="0,6,0,8" Text="{Binding ProviderId, UpdateSourceTrigger=PropertyChanged}" />
+                <PasswordBox x:Name="ApiKeyBox" Margin="0,0,0,18" PasswordChanged="ApiKeyBox_OnPasswordChanged" />
+
+                <TextBlock Text="Personality" FontWeight="SemiBold" />
+                <TextBox Margin="0,6,0,8" MinHeight="64" TextWrapping="Wrap" AcceptsReturn="True"
+                         Text="{Binding PersonalityCustomization, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="Allow natural profanity" IsChecked="{Binding AllowProfanity}" />
+                <CheckBox Content="Prefer brief spoken replies" IsChecked="{Binding PreferBriefSpeech}" />
+                <CheckBox Content="Subtly adapt to my conversational style" IsChecked="{Binding EnableStyleAdaptation}" />
+
+                <TextBlock Margin="0,18,0,0" Text="Optional Easter egg" FontWeight="SemiBold" />
+                <TextBox Margin="0,6,0,8" Text="{Binding EasterEggPhrase, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Leave blank to skip" />
+                <CheckBox Content="Launch Hey Computer when I sign in" IsChecked="{Binding LaunchAtSignIn}" />
+
+                <Border Margin="0,18,0,0" Padding="12" Background="#11000000" CornerRadius="8">
+                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Back" Margin="0,0,8,0" Padding="18,8" Click="Back_OnClick"
+                    IsEnabled="{Binding CanGoBack}" />
+            <Button Content="Continue" Padding="18,8" Click="Continue_OnClick" />
+        </StackPanel>
+    </Grid>
+</UserControl>

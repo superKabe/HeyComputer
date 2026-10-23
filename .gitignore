@@ -1,0 +1,12 @@
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+*.suo
+*.pfx
+*.snk
+models/**/*.onnx
+models/**/*.bin
+models/**/*.tokens
+!models/README.md

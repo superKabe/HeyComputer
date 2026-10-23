@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>HeyComputer</AssemblyName>
+    <RootNamespace>HeyComputer.Desktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HeyComputer.Audio\HeyComputer.Audio.csproj" />
+    <ProjectReference Include="..\HeyComputer.Core\HeyComputer.Core.csproj" />
+    <ProjectReference Include="..\HeyComputer.Providers.Xai\HeyComputer.Providers.Xai.csproj" />
+    <ProjectReference Include="..\HeyComputer.Settings\HeyComputer.Settings.csproj" />
+    <ProjectReference Include="..\HeyComputer.WakeWord\HeyComputer.WakeWord.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,36 @@
+name: build
+
+# This workflow assumes HeyComputer is the repository root. If the current
+# parent workspace becomes the repository, move this file to the root .github
+# directory and add `working-directory: HeyComputer` to the run steps.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Verify and package unsigned development build
+        shell: pwsh
+        run: .\installer\verify-release.ps1 -Configuration Release -Runtime win-x64
+
+      - name: Upload verified unsigned development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeyComputer-win-x64-unsigned
+          path: artifacts/HeyComputer-win-x64-Release-unsigned.zip
+          if-no-files-found: error
+          retention-days: 7
