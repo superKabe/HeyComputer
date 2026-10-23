@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using HeyComputer.ComputerControl;
 using HeyComputer.Desktop.Audio;
 using HeyComputer.Desktop.Integration;
 using Application = System.Windows.Application;
@@ -16,8 +17,13 @@ public partial class MainWindow : Window
     private readonly AssistantStateCoordinator _state = new();
     private readonly IAudioCaptureService _audio = new AudioCaptureService();
     private readonly DesktopAssistantRuntime _runtime;
+    private readonly IComputerControlCapability _computerControl;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly Forms.NotifyIcon _trayIcon;
+    private readonly FloatingStatusWindow _floatingPanel;
+    private Forms.ToolStripMenuItem? _trayStartItem;
+    private Forms.ToolStripMenuItem? _trayMuteItem;
+    private Forms.ToolStripMenuItem? _trayStopItem;
     private bool _exitRequested;
     private bool _isMuted;
 
@@ -26,6 +32,13 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _runtime = new DesktopAssistantRuntime(_audio);
+        _computerControl = new WindowsComputerControlCapability(new LaunchAllowlist(
+        [
+            new LaunchTarget("spotify", "Spotify", LaunchTargetKind.Uri, "https://open.spotify.com"),
+            new LaunchTarget("youtube", "YouTube", LaunchTargetKind.Uri, "https://www.youtube.com")
+        ]));
+        _floatingPanel = new FloatingStatusWindow();
+        _floatingPanel.OpenDashboardRequested += (_, _) => ShowFromTray();
         _trayIcon = CreateTrayIcon();
         _state.StateChanged += OnStateChanged;
         _runtime.StateChanged += OnRuntimeStateChanged;
@@ -37,14 +50,21 @@ public partial class MainWindow : Window
 
         Loaded += OnLoaded;
         Closing += OnClosing;
+        AddActivity("Ready. Start listening when you want Hey Computer to use the microphone.");
     }
 
     private Forms.NotifyIcon CreateTrayIcon()
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Open Hey Computer", null, (_, _) => ShowFromTray());
-        menu.Items.Add("Mute microphone", null, async (_, _) => await ToggleMuteAsync());
-        menu.Items.Add("Stop listening", null, async (_, _) => await StopListeningAsync());
+        menu.Items.Add("Show floating status", null, (_, _) => Dispatcher.Invoke(() => _floatingPanel.ShowPanel()));
+        menu.Items.Add(new Forms.ToolStripSeparator());
+        _trayStartItem = new Forms.ToolStripMenuItem("Start listening", null, async (_, _) => await StartListeningAsync());
+        _trayMuteItem = new Forms.ToolStripMenuItem("Mute microphone", null, async (_, _) => await ToggleMuteAsync()) { Enabled = false };
+        _trayStopItem = new Forms.ToolStripMenuItem("Stop listening", null, async (_, _) => await StopListeningAsync()) { Enabled = false };
+        menu.Items.Add(_trayStartItem);
+        menu.Items.Add(_trayMuteItem);
+        menu.Items.Add(_trayStopItem);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, async (_, _) => await ExitAsync());
 
@@ -61,6 +81,7 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        _floatingPanel.ShowPanel();
         RefreshMicrophones();
         try
         {
@@ -83,15 +104,29 @@ public partial class MainWindow : Window
         var selectedId = _audio.SelectedDeviceId;
         var devices = _audio.GetDevices();
         MicrophonePicker.ItemsSource = devices;
-        MicrophonePicker.SelectedItem = devices.FirstOrDefault(device => device.Id == selectedId) ?? devices[0];
+        MicrophonePicker.SelectedItem = devices.FirstOrDefault(device => device.Id == selectedId) ?? devices.FirstOrDefault();
+        if (devices.Count == 0)
+        {
+            StartButton.IsEnabled = false;
+            if (_trayStartItem is not null)
+            {
+                _trayStartItem.Enabled = false;
+            }
+
+            AddActivity("No microphone was found. Connect one, then reopen Hey Computer.");
+        }
     }
 
     private async void StartButton_OnClick(object sender, RoutedEventArgs e)
+        => await StartListeningAsync();
+
+    private async Task StartListeningAsync()
     {
         try
         {
             await _runtime.StartAsync(_lifetime.Token);
             _isMuted = false;
+            AddActivity("Microphone capture started.");
         }
         catch (OperationCanceledException)
         {
@@ -100,6 +135,7 @@ public partial class MainWindow : Window
         catch
         {
             _state.Set(AssistantState.Error);
+            AddActivity("Hey Computer could not start. Check the microphone and setup status.");
         }
     }
 
@@ -133,6 +169,7 @@ public partial class MainWindow : Window
             {
                 await _runtime.StartAsync(_lifetime.Token);
                 _isMuted = false;
+                AddActivity("Microphone capture resumed.");
             }
             catch
             {
@@ -143,6 +180,7 @@ public partial class MainWindow : Window
         {
             await _runtime.MuteAsync(_lifetime.Token);
             _isMuted = true;
+            AddActivity("Microphone capture muted.");
         }
     }
 
@@ -152,6 +190,7 @@ public partial class MainWindow : Window
     {
         await _runtime.StopAsync(_lifetime.Token);
         _isMuted = false;
+        AddActivity("Assistant stopped. No microphone audio is being captured.");
     }
 
     private async void MicrophonePicker_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -189,6 +228,11 @@ public partial class MainWindow : Window
             StateText.Text = state.ToDisplayText();
             StateDot.Fill = new SolidColorBrush(GetStateColor(state));
             PrivacyText.Text = GetPrivacyText(state);
+            RunningText.Text = state is AssistantState.Sleeping or AssistantState.Muted or AssistantState.Error
+                ? state == AssistantState.Muted ? "Assistant is running · microphone muted" : "Assistant is stopped"
+                : "Assistant is running";
+            ActivityHintText.Text = state.ToDisplayText();
+            _floatingPanel.UpdateState(state);
             var trayText = $"Hey Computer — {state.ToDisplayText()}";
             _trayIcon.Text = trayText[..Math.Min(63, trayText.Length)];
 
@@ -199,6 +243,13 @@ public partial class MainWindow : Window
             MuteButton.Content = _isMuted ? "Unmute" : "Mute";
             StopButton.IsEnabled = active || _isMuted;
             MicrophonePicker.IsEnabled = !active;
+            if (_trayStartItem is not null)
+            {
+                _trayStartItem.Enabled = !active && !_isMuted;
+                _trayMuteItem!.Enabled = active || _isMuted;
+                _trayMuteItem.Text = _isMuted ? "Unmute microphone" : "Mute microphone";
+                _trayStopItem!.Enabled = active || _isMuted;
+            }
         });
     }
 
@@ -233,7 +284,12 @@ public partial class MainWindow : Window
         Dispatcher.BeginInvoke(() => _state.Set(state));
 
     private void OnRuntimeStatusChanged(object? sender, string status) =>
-        Dispatcher.BeginInvoke(() => PrivacyText.Text = status);
+        Dispatcher.BeginInvoke(() =>
+        {
+            PrivacyText.Text = status;
+            _floatingPanel.UpdateState(_state.Current, status);
+            AddActivity(status);
+        });
 
     private void OnReadinessChanged(object? sender, DesktopReadiness readiness) =>
         Dispatcher.BeginInvoke(() => SetupStatusText.Text = readiness.Summary);
@@ -279,12 +335,46 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void ToggleMediaButton_OnClick(object sender, RoutedEventArgs e) =>
+        await RunComputerControlAsync(new ComputerControlCommand.ToggleMediaPlayback());
+
+    private async void CheckSpotifyButton_OnClick(object sender, RoutedEventArgs e) =>
+        await RunComputerControlAsync(new ComputerControlCommand.CheckProcessRunning("Spotify"));
+
+    private async void OpenSpotifyButton_OnClick(object sender, RoutedEventArgs e) =>
+        await RunComputerControlAsync(new ComputerControlCommand.LaunchAllowlistedTarget("spotify"));
+
+    private async void OpenYouTubeButton_OnClick(object sender, RoutedEventArgs e) =>
+        await RunComputerControlAsync(new ComputerControlCommand.LaunchAllowlistedTarget("youtube"));
+
+    private async Task RunComputerControlAsync(ComputerControlCommand command)
+    {
+        try
+        {
+            var result = await _computerControl.ExecuteAsync(
+                command,
+                ComputerControlRequestContext.Create(),
+                _lifetime.Token);
+            AddActivity(result.Summary);
+            _floatingPanel.UpdateState(_state.Current, result.Summary);
+        }
+        catch (OperationCanceledException)
+        {
+            // Application shutdown owns cancellation.
+        }
+        catch
+        {
+            AddActivity("The computer control action failed.");
+        }
+    }
+
     private void OnCaptureFailed(object? sender, string message)
     {
         Dispatcher.BeginInvoke(() =>
         {
             _state.Set(AssistantState.Error);
             PrivacyText.Text = message;
+            AddActivity(message);
         });
     }
 
@@ -322,8 +412,38 @@ public partial class MainWindow : Window
         }
 
         e.Cancel = true;
+        HideToTray(showNotification: true);
+    }
+
+    private void HideButton_OnClick(object sender, RoutedEventArgs e) => HideToTray(showNotification: false);
+
+    private void HideToTray(bool showNotification)
+    {
         Hide();
-        _trayIcon.ShowBalloonTip(1500, "Hey Computer", "Still available in the notification area.", Forms.ToolTipIcon.Info);
+        if (showNotification)
+        {
+            _trayIcon.ShowBalloonTip(1500, "Hey Computer", "Still available in the notification area.", Forms.ToolTipIcon.Info);
+        }
+    }
+
+    private void AddActivity(string message)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => AddActivity(message));
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        ActivityList.Items.Insert(0, $"{DateTime.Now:t}  {message.Trim()}");
+        while (ActivityList.Items.Count > 20)
+        {
+            ActivityList.Items.RemoveAt(ActivityList.Items.Count - 1);
+        }
     }
 
     private void ShowFromTray()
@@ -344,6 +464,7 @@ public partial class MainWindow : Window
         await _audio.DisposeAsync();
         _trayIcon.Visible = false;
         _trayIcon.Dispose();
+        _floatingPanel.CloseForExit();
 
         Dispatcher.Invoke(() =>
         {
@@ -360,5 +481,6 @@ public partial class MainWindow : Window
         _audio.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _trayIcon.Visible = false;
         _trayIcon.Dispose();
+        _floatingPanel.CloseForExit();
     }
 }

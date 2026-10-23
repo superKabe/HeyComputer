@@ -2,14 +2,29 @@
 
 This is the durable, prioritized backlog. Keep it current by moving items between sections rather than duplicating them. Each completed architectural decision should be reflected in `AGENTS.md` and the relevant design document.
 
-## P0 — Define the product core
+## P0 — Action-first user-testable prototype
+
+- [x] Ship a clickable Windows tray UI that clearly shows whether Hey Computer is running, listening, working, paused, or stopped.
+- [x] Add a minimal always-on-top floating status panel that shows the current state and opens the full dashboard when clicked; defer optional click-through behavior.
+- [ ] Add a full dashboard accessible from the floating panel or tray for activity, tasks, usage, permissions, audit history, and settings.
+- [ ] Show a simple live hierarchy in the dashboard: Conversation Agent at the top; Orchestration Agent and Context Agent beneath it; active task workers beneath Orchestration.
+- [ ] Provide explicit Start, Pause, Stop, and hard-stop controls that immediately cancel active computer-control work.
+- [x] Package the current application as an unsigned, portable Windows executable that a user can launch and test without a development environment.
+- [x] Implement initial local computer controls for media play/pause, Spotify process checks, and allowlisted Spotify and YouTube launch targets.
+- [ ] Keep the Conversation Agent responsive while computer-control work runs and return a short verified result.
+- [ ] Show the active action, responsible worker, selected model, usage estimate, and cancellation control in the basic UI.
+- [ ] Write every attempted computer action and outcome to a local, human-readable audit log.
+- [ ] Gate destructive, external, credential, purchase, upload, security, and message-sending actions behind explicit confirmation; defer broader permission-system design until the prototype proves useful.
+- [ ] Run the portable build like a user and verify launch, tray controls, one computer action, cancellation, audit output, and clean exit.
+
+## P0 — Define the product core without blocking the prototype
 
 - [x] Adopt the thesis: “An open-source, local-first Windows Jarvis that remembers transparently and delegates work to whichever agent is best.”
 - [x] Define persistent roles: Conversation Agent, Orchestration Agent, Context Agent, and disposable Worker Agents.
 - [x] Decide that local-first means local canonical data and control state; cloud inference is allowed.
 - [x] Decide that multiple user or speaker memory profiles are deferred.
 - [x] Decide that low-budget conditions always require asking before continued paid work.
-- [ ] Specify typed contracts and message flow among the three persistent agents and workers.
+- [ ] Specify typed contracts and message flow among the three persistent agents and workers, iterating from the working vertical slice rather than blocking it.
 - [ ] Define lifecycle and crash recovery so conversation, tasks, and memory updates survive restarts safely.
 - [ ] Reconcile older architecture, privacy, onboarding, and threat-model documents with the new product direction.
 
@@ -37,16 +52,16 @@ This is the durable, prioritized backlog. Keep it current by moving items betwee
 
 ## P0 — First vertical slice
 
-- [ ] Complete: wake → listen → immediate acknowledgement → understand → delegate one harmless task.
+- [ ] Complete: wake or tray activation → listen → immediate acknowledgement → understand → delegate one useful, narrowly scoped computer task.
 - [ ] Keep the Conversation Agent responsive while the worker runs.
 - [ ] Have the Context Agent summarize the exchange into the inspectable vault in parallel.
 - [ ] Return a verified worker result through the stable conversational personality.
-- [ ] Show active task, selected model, estimated usage, permissions, and cancellation control.
+- [ ] Show active task, selected model, estimated usage, permissions, cancellation, and hard-stop control.
 - [ ] Restart the application mid-task and verify safe recovery without duplicate paid work.
 
 ## P1 — Validate the existing voice foundation
 
-- [ ] Finish GitHub authentication, create the initial commit, and publish the repository under the chosen visibility.
+- [x] Authenticate GitHub, create the public repository, make the initial commit, and push `main`.
 - [ ] Configure a user-supplied xAI credential through the application UI.
 - [ ] Resolve a legally redistributable English “Hey Computer” wake model.
 - [ ] Run guided microphone calibration in quiet, music, television, and distance scenarios.
@@ -54,10 +69,10 @@ This is the durable, prioritized backlog. Keep it current by moving items betwee
 - [ ] Add barge-in and echo/self-trigger protection after the baseline loop is reliable.
 - [ ] Validate sleep/resume, device changes, Bluetooth behavior, mute, cancellation, and startup registration.
 
-## P1 — Safe computer control
+## P1 — Expand and harden computer control
 
 - [ ] Inventory reusable runtimes and licenses: Windows UI Automation/COM/Win32, browser automation, computer-use models, MCP tools, and specialist coding agents.
-- [ ] Define the capability broker and local action audit format before enabling writes.
+- [ ] Evolve the prototype action runner into a capability broker with application scopes and a versioned local audit format.
 - [ ] Begin with read-only screen, window, accessibility-tree, filesystem, and browser observation.
 - [ ] Add reversible local actions with narrow per-application scopes.
 - [ ] Prefer direct APIs and structured controls; use vision-driven clicking only as a fallback.
@@ -76,7 +91,7 @@ This is the durable, prioritized backlog. Keep it current by moving items betwee
 ## P2 — Productization
 
 - [ ] Rework onboarding around memory, provider data flow, computer permissions, and budget controls.
-- [ ] Provide a signed per-user installer, clean uninstall, safe updates, and rollback.
+- [ ] Turn the portable executable into a signed per-user installer with clean uninstall, safe updates, and rollback.
 - [ ] Add a task/memory/usage dashboard without making the conversational experience feel like project-management software.
 - [ ] Support provider switching without losing identity, memory, or task history.
 - [ ] Add sanitized diagnostics and user-exportable support bundles.
@@ -84,6 +99,7 @@ This is the durable, prioritized backlog. Keep it current by moving items betwee
 
 ## P3 — Later possibilities
 
+- [ ] Enrich the functional floating status panel with an optional avatar, animation, and more expressive listening and working feedback.
 - [ ] Optional local inference for routing, classification, summarization, retrieval, and other light work.
 - [ ] Multiple user or speaker memory profiles.
 - [ ] User-defined wake phrases.

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HeyComputer.Audio\HeyComputer.Audio.csproj" />
+    <ProjectReference Include="..\HeyComputer.ComputerControl\HeyComputer.ComputerControl.csproj" />
     <ProjectReference Include="..\HeyComputer.Core\HeyComputer.Core.csproj" />
     <ProjectReference Include="..\HeyComputer.Providers.Xai\HeyComputer.Providers.Xai.csproj" />
     <ProjectReference Include="..\HeyComputer.Settings\HeyComputer.Settings.csproj" />

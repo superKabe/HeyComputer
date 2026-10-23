@@ -96,7 +96,8 @@ $hashLines = Get-ChildItem -LiteralPath $resolvedOutput -File -Recurse |
         $relativeName = $_.FullName.Substring($outputPrefix.Length).Replace([System.IO.Path]::DirectorySeparatorChar, '/')
         "$($hash.Hash.ToLowerInvariant())  $relativeName"
     }
-Set-Content -LiteralPath $manifestPath -Value $hashLines -Encoding utf8NoBOM
+# Windows PowerShell 5.1 does not recognize the newer utf8NoBOM encoding name.
+Set-Content -LiteralPath $manifestPath -Value $hashLines -Encoding UTF8
 
 $archivePath = Join-Path $artifactsRoot "HeyComputer-$Runtime-$Configuration-unsigned.zip"
 if (Test-Path -LiteralPath $archivePath) {
