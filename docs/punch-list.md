@@ -11,6 +11,9 @@ This is the durable, prioritized backlog. Keep it current by moving items betwee
 - [ ] Provide explicit Start, Pause, Stop, and hard-stop controls that immediately cancel active computer-control work.
 - [x] Package the current application as an unsigned, portable Windows executable that a user can launch and test without a development environment.
 - [x] Implement initial local computer controls for media play/pause, Spotify process checks, and allowlisted Spotify and YouTube launch targets.
+- [ ] Prove the general desktop driver with window enumeration, screenshots, UI Automation data, click, type, scroll, cancellation, and verification; evaluate Cua Driver first.
+- [ ] Define provider-neutral `DesktopObservation`, `DesktopAction`, and `DesktopResult` contracts with stale-frame protection.
+- [ ] Add a bounded observe → plan → gate → act → verify loop that works without app-specific commands.
 - [ ] Keep the Conversation Agent responsive while computer-control work runs and return a short verified result.
 - [ ] Show the active action, responsible worker, selected model, usage estimate, and cancellation control in the basic UI.
 - [ ] Write every attempted computer action and outcome to a local, human-readable audit log.
